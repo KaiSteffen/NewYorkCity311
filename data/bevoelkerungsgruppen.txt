@@ -1,0 +1,54 @@
+=== BEVÖLKERUNGSVERTEILUNG HINZUFÜGEN ===
+
+Bevölkerungsverteilung pro Borough:
+ 
+BROOKLYN:
+
+  Weiße: 0.412 (41.2%)
+
+  Afroamerikaner: 0.364 (36.4%)
+
+  Asiaten: 0.075 (7.5%)
+
+  Hispanics/Latinos: 0.198 (19.8%)
+ 
+MANHATTAN:
+
+  Weiße: 0.544 (54.4%)
+
+  Afroamerikaner: 0.174 (17.4%)
+
+  Asiaten: 0.094 (9.4%)
+
+  Hispanics/Latinos: 0.272 (27.2%)
+ 
+QUEENS:
+
+  Weiße: 0.441 (44.1%)
+
+  Afroamerikaner: 0.200 (20.0%)
+
+  Asiaten: 0.176 (17.6%)
+
+  Hispanics/Latinos: 0.250 (25.0%)
+ 
+BRONX:
+
+  Weiße: 0.299 (29.9%)
+
+  Afroamerikaner: 0.356 (35.6%)
+
+  Asiaten: 0.030 (3.0%)
+
+  Hispanics/Latinos: 0.484 (48.4%)
+ 
+STATEN ISLAND:
+
+  Weiße: 0.776 (77.6%)
+
+  Afroamerikaner: 0.097 (9.7%)
+
+  Asiaten: 0.057 (5.7%)
+
+  Hispanics/Latinos: 0.121 (12.1%)
+ 
