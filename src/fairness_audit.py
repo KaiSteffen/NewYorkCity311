@@ -46,6 +46,8 @@ from sklearn.linear_model import LogisticRegression
 import re
 from typing import Tuple, Optional, Union
 
+# Lädt Trainings- und Testdaten, extrahiert Zielvariable und sensitive Merkmale
+# Rückgabe: Feature-Matrizen, Ziel-Arrays, sensitive Merkmale für Training und Test
 
 def load_data(train_path, test_path):
     X_train = pd.read_csv(train_path)
@@ -57,30 +59,42 @@ def load_data(train_path, test_path):
     y_train = X_train["Complaint_Type"].values.ravel()
     y_test = X_test["Complaint_Type"].values.ravel()
 
+    # Extrahiere sensitive Merkmale (z.B. Ethnien)
     sensitive_train = X_train[["Weisse", "Afroamerikaner", "Asiaten", "Hispanics"]]
     sensitive_test = X_test[["Weisse", "Afroamerikaner", "Asiaten", "Hispanics"]]
 
+    # Entferne Zielvariable aus Feature-Matrix
     X_train = X_train.drop(columns=["Complaint_Type"])
     X_test = X_test.drop(columns=["Complaint_Type"])
 
     return X_train, X_test, y_train, y_test, sensitive_train, sensitive_test
+
+# Trainiert ein XGBoost-Klassifikationsmodell auf den Trainingsdaten
+# Rückgabe: Trainiertes Modell
 
 def train_model(X_train, y_train):
     model = XGBClassifier(eval_metric="mlogloss")
     model.fit(X_train, y_train)
     return model
 
+# Bewertet die Fairness des Modells für jede Klasse anhand mehrerer Metriken
+# Rückgabe: Listen mit Metrik-Werten und Klassen
+
 def evaluate_fairness(model, X_test, y_test, sensitive_test):
     classes = sorted(set(y_test))
     dpd_values, eod_values, dir_values = [], [], []
 
     for cls in classes:
+        # Binär-Kodierung für die aktuelle Klasse
         y_test_bin = (y_test == cls).astype(int)
         y_pred_bin = (model.predict(X_test) == cls).astype(int)
 
         try:
+            # Berechne Demographic Parity Difference
             dpd = demographic_parity_difference(y_test_bin, y_pred_bin, sensitive_features=sensitive_test)
+            # Berechne Equalized Odds Difference
             eod = equalized_odds_difference(y_test_bin, y_pred_bin, sensitive_features=sensitive_test)
+            # Berechne Disparate Impact Ratio
             dir_ = disparate_impact_ratio(y_test_bin, y_pred_bin, sensitive_features=sensitive_test)
         except Exception as e:
             print(f"❌ Fehler bei Klasse {cls}: {e}")
@@ -92,12 +106,18 @@ def evaluate_fairness(model, X_test, y_test, sensitive_test):
 
     return dpd_values, eod_values, dir_values, classes
 
+# Prüft, ob eine der Fairness-Metriken außerhalb des akzeptablen Bereichs liegt
+# Rückgabe: True, wenn eine Verletzung vorliegt, sonst False
+
 def check_fairness_violations(dpd_values, eod_values, dir_values):
     return (
         max(dpd_values) > 0.2 or
         max(eod_values) > 0.2 or
         any((d < 0.8 or d > 1.2) for d in dir_values if not pd.isna(d))
     )
+
+# Wendet Reweighing an, um die Trainingsdaten fairer zu machen und trainiert ein neues Modell
+# Rückgabe: Neu trainiertes Modell mit Reweighing
 
 def apply_reweighing(X_train, y_train, sensitive_train):
     # 📦 Reweighing: Gewichte berechnen
@@ -113,10 +133,11 @@ def apply_reweighing(X_train, y_train, sensitive_train):
     model_rw.fit(X_train, y_train, sample_weight=weights)
     return model_rw
 
-
-
+# Wendet Threshold Moving (ThresholdOptimizer) für eine Zielklasse an
+# Rückgabe: Neue Vorhersagen nach Schwellenwertanpassung
 
 def apply_threshold_moving(model, X_test, y_test, sensitive_test, target_class):
+    # Binär-Kodierung für die Zielklasse
     y_test_bin = (y_test == target_class).astype(int)
 
     threshold_opt = ThresholdOptimizer(
