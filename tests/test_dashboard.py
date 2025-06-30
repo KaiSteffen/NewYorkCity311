@@ -1,6 +1,17 @@
 # tests/test_dashboard.py
 import pytest
 import pandas as pd
+import sys
+from pathlib import Path
+import os
+import json
+import pandas as pd
+import locale
+
+# Füge das 'src'-Verzeichnis zum Python-Pfad hinzu
+src_path = Path(__file__).parent.parent / 'src'
+sys.path.insert(0, str(src_path))
+
 
 # Fixture zum Laden des Fairness-Metrik-Datensatzes aus der Ergebnisdatei
 @pytest.fixture
