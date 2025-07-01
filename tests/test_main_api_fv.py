@@ -33,7 +33,7 @@ class TestAPIModelLoading:
     def test_model_path_validation(self):
         """Test that model path is correctly configured"""
         # Expected model path
-        expected_model_path = r"D:\Fernstudium\Module\AITools\repo\311NYC\models\complaint_classifier_oop_20250629_203227.pkl"
+        expected_model_path = str(Path(__file__).parent.parent / "models" / "complaint_classifier_oop_20250629_203227.pkl")
         
         # Check if model file exists
         model_exists = os.path.exists(expected_model_path)
