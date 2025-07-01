@@ -437,4 +437,28 @@ class TestDataPreprocessingOOP:
         
         # Check if the data was processed
         assert len(preprocessor.df) > 0
-        assert len(preprocessor.df.columns) > 0 
+        assert len(preprocessor.df.columns) > 0
+
+    def test_save_train_test_split_stratified(self, tmp_path):
+        # Erzeuge einen großen Dummy-DataFrame mit Complaint_Type
+        n = 100000
+        df = pd.DataFrame({
+            'Complaint_Type': np.random.choice(['A', 'B', 'C'], size=n, p=[0.7, 0.2, 0.1]),
+            'feature1': np.random.randn(n),
+            'feature2': np.random.randint(0, 100, size=n)
+        })
+        preprocessor = DataPreprocessorOOP()
+        preprocessor.df = df
+        train_path = tmp_path / 'train_data_final.csv'
+        test_path = tmp_path / 'test_data_final.csv'
+        preprocessor.save_train_test_split(train_path=str(train_path), test_path=str(test_path))
+        train_df = pd.read_csv(train_path)
+        test_df = pd.read_csv(test_path)
+        # Prüfe exakte Zeilenzahlen
+        assert len(train_df) == 60000
+        assert len(test_df) == 6000
+        # Prüfe stratified: Verteilung der Complaint_Type ähnlich im Vergleich
+        train_dist = train_df['Complaint_Type'].value_counts(normalize=True)
+        test_dist = test_df['Complaint_Type'].value_counts(normalize=True)
+        for c in ['A', 'B', 'C']:
+            assert abs(train_dist[c] - test_dist[c]) < 0.05  # max. 5% Abweichung 
