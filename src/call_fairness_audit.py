@@ -1,3 +1,35 @@
+"""
+Dieses Skript führt eine Fairnessanalyse auf einem vortrainierten XGBoost-Modell durch
+und verbessert bei Bedarf die Fairness durch Reweighing und Threshold-Moving.
+
+Funktionen und Workflow:
+------------------------
+1. Laden von Trainings- und Testdaten sowie sensitiven Attributen.
+2. Laden eines vortrainierten Klassifikationsmodells.
+3. Berechnung von Fairnessmetriken (Demographic Parity Difference, Equal Opportunity Difference, Disparate Impact Ratio).
+4. Automatisierte Überprüfung auf Fairnessverstöße.
+5. Bei Verstößen:
+    a) Reweighing zur Fairnesskorrektur in den Trainingsdaten.
+    b) Anwendung von Threshold-Moving auf eine Zielklasse.
+    c) Speicherung des angepassten Modells und der Vorhersagen.
+6. Visualisierung und Logging an relevanten Stellen zur Nachvollziehbarkeit.
+
+Verwendete Module:
+------------------
+- fairness_audit: eigenes Modul für Fairnessanalyse und Fairnessmaßnahmen.
+- xgboost: Gradient Boosting Classifier.
+- joblib: zum Speichern und Laden von Modellen und Daten.
+- sklearn, numpy, seaborn, matplotlib: für Analysen und Visualisierungen.
+
+Hinweis:
+--------
+- Die Zielklasse für Threshold-Moving ist aktuell auf 3 gesetzt (anpassbar).
+- Modell und Datenpfade sind projektspezifisch und sollten ggf. konfigurierbar gemacht werden.
+
+Autor: Bettina Gertjerenken, Dagmar Wesemann, Kai W. Steffen
+Stand: Juni 2025
+"""
+
 # 📦 Fairness-Funktionen aus eigenem Modul importieren
 from fairness_audit import (
     evaluate_fairness,
@@ -19,12 +51,12 @@ import seaborn as sns
 # 📥 Daten laden
 print("🔄 Lade Trainings- und Testdaten...")
 X_train, X_test, y_train, y_test, sensitive_train, sensitive_test = load_data(
-    "data/training/train_data_fv_20250629_185546.csv",
-    "data/training/test_data_oop.csv"
+    "data/train_data_final.csv",
+    "data/test_data_final.csv"
 )
 print("✅ Daten erfolgreich geladen.\n")
 
-# 📦 Modell laden (statt neu trainieren)
+# 📦 Modell laden 
 model_path = "models/model_reexported_20250630_124707.json"
 print(f"📦 Lade bereits trainiertes Modell aus: {model_path}")
 model = XGBClassifier()
@@ -38,6 +70,14 @@ with open(model_path, "r") as f:
 print("📊 Starte Fairnessanalyse mit dem geladenen Modell...")
 dpd, eod, dir_, classes = evaluate_fairness(model, X_test, y_test, sensitive_test)
 print("✅ Fairnessmetriken erfolgreich berechnet.\n")
+
+# ➕ Ausgabe der Fairnessmetriken pro Klasse
+print("--- Fairnessmetriken pro Klasse ---")
+for cls, dpd_val, eod_val, dir_val in zip(classes, dpd, eod, dir_):
+    print(f"Klasse: {cls}")
+    print(f"  Demographic Parity Difference (DPD): {dpd_val:.3f}")
+    print(f"  Equalized Odds Difference (EOD):     {eod_val:.3f}")
+    print(f"  Disparate Impact Ratio (DIR):        {dir_val:.3f}\n")
 
 # 🛡️ Fairness überprüfen
 if check_fairness_violations(dpd, eod, dir_):
