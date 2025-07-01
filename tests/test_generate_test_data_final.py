@@ -9,7 +9,7 @@ import locale
 # Path(__file__) ist der Pfad zur aktuellen Testdatei.
 # .parent.parent geht zwei Ebenen nach oben (von /tests/ nach /).
 project_root = Path(__file__).parent.parent
-script_path = project_root / 'generate_test_data_final.py'
+script_path = project_root / 'src' / 'generate_test_data_final.py'
 
 def test_script_runs_without_error():
     """Stellt sicher, dass das Skript ohne Fehler durchläuft."""
