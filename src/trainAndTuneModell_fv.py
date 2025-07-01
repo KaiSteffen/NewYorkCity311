@@ -105,156 +105,24 @@ class ModelTrainer:
         self.complaint_type_mapping = None  # Hinzugefügt: Mapping für Complaint Types
         
     def load_and_split_data(self):
-        """Load preprocessed data and create train/test sets with exact sizes"""
-        self.logger.info("Loading preprocessed data and creating train/test sets with exact sizes...")
-        
-        # This import needs to be available for all code paths in the method.
-        from sklearn.model_selection import train_test_split
-
-        # Load the preprocessed data
+        """
+        Läd die bereits erzeugten Trainings- und Testdaten aus den CSVs.
+        Es findet kein erneutes Sampling oder Splitten mehr statt.
+        """
+        import os
+        import pandas as pd
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        possible_paths = [
-            os.path.join(script_dir, '..', 'data', 'processed_311_data_consolidated.csv'),
-            os.path.join(script_dir, '..', 'data', 'processed_311_data_oop.csv'),
-            os.path.join(script_dir, '..', 'data', 'training', 'processed_train_data_oop.csv'),
-            'data/processed_311_data_consolidated.csv',
-            'data/processed_311_data_oop.csv',
-            'data/training/processed_train_data_oop.csv'
-        ]
-        
-        data = None
-        for path in possible_paths:
-            if os.path.exists(path):
-                try:
-                    data = pd.read_csv(path)
-                    self.logger.info(f"Loaded preprocessed data from: {path}")
-                    self.logger.info(f"Loaded data shape: {data.shape}")
-                    break
-                except Exception as e:
-                    self.logger.warning(f"Failed to load from {path}: {str(e)}")
-                    continue
-        
-        if data is None:
-            self.logger.error("Could not load any preprocessed data!")
-            return
-        
-        # === HIER: Sicherstellen, dass die duration-Spalte 'duration_days' heißt ===
-        self.logger.info("Checking and cleaning duration column name...")
-        if 'duration_[days]' in data.columns:
-            data = data.rename(columns={'duration_[days]': 'duration_days'})
-            self.logger.info("Renamed column 'duration_[days]' to 'duration_days'.")
-        elif 'duration [days]' in data.columns:
-            data = data.rename(columns={'duration [days]': 'duration_days'})
-            self.logger.info("Renamed column 'duration [days]' to 'duration_days'.")
-        elif 'duration_days' in data.columns:
-            self.logger.info("Column 'duration_days' already has the correct name.")
-        else:
-            self.logger.warning("No 'duration_[days]', 'duration [days]' or 'duration_days' column found to clean.")
-        # === ENDE Anpassung ===
-        
-        # === HIER: Zuordnung der Complaint Types erstellen ===
-        if 'Complaint_Type' in data.columns and pd.api.types.is_numeric_dtype(data['Complaint_Type']):
-            # Wenn bereits numerisch, brauchen wir eine Referenzdatei
-            # (In diesem Fall gehen wir davon aus, dass wir sie nicht haben und bauen sie neu auf)
-            self.logger.warning("Complaint_Type is already numeric. Mapping might be incomplete if not all classes are present.")
-
-        # Mapping von numerischen Codes zu den Namen erstellen
-        # Dies setzt voraus, dass die numerische Spalte noch nicht existiert.
-        # Wenn sie existiert, müssen wir davon ausgehen, dass sie korrekt ist.
-        data['Complaint_Type_encoded'] = data['Complaint_Type'].astype('category').cat.codes
-        self.complaint_type_mapping = dict(enumerate(data['Complaint_Type'].astype('category').cat.categories))
-        self.logger.info(f"📊 Created mapping for {len(self.complaint_type_mapping)} complaint types.")
-        
-        # Die originale, textbasierte 'Complaint_Type' Spalte wird mit ihrer numerisch
-        # kodierten Version überschrieben. 'Complaint_Type_original' wird nicht mehr
-        # erstellt, um das Datenleck zu verhindern.
-        data['Complaint_Type'] = data['Complaint_Type_encoded']
-        data = data.drop(columns=['Complaint_Type_encoded'])
-
-        # === ENDE Anpassung ===
-
-        # Ensure Complaint_Type is the first column
-        if 'Complaint_Type' in data.columns:
-            # Move Complaint_Type to the front
-            cols = ['Complaint_Type'] + [col for col in data.columns if col != 'Complaint_Type']
-            data = data[cols]
-            self.logger.info("Moved Complaint_Type to the front")
-        
-        # Calculate required sample size for 65,000 total samples (60,000 train + 5,000 test)
-        target_total = 65000
-        if len(data) > target_total:
-            # Calculate sampling ratio to get exactly 65,000 samples
-            sampling_ratio = target_total / len(data)
-            self.logger.info(f"Sampling {sampling_ratio:.3f} of data to get {target_total:,} total samples")
-            
-            # Stratified sampling to maintain class distribution
-            
-            # First, sample the required amount while maintaining class distribution
-            sampled_data, _ = train_test_split(
-                data, 
-                train_size=sampling_ratio,
-                random_state=self.random_state,
-                stratify=data['Complaint_Type']
-            )
-            data = sampled_data
-            self.logger.info(f"Sampled data shape: {data.shape}")
-        
-        # Now split into exactly 60,000 train and 5,000 test
-        train_size = 60000
-        test_size = 5000
-        
-        if len(data) >= (train_size + test_size):
-            # Split into exact sizes
-            self.train_data, self.test_data = train_test_split(
-                data, 
-                train_size=train_size,
-                test_size=test_size,
-                random_state=self.random_state,
-                stratify=data['Complaint_Type']
-            )
-        else:
-            # If not enough data, use all available data
-            self.logger.warning(f"Not enough data for exact sizes. Using all {len(data)} samples")
-            self.train_data, self.test_data = train_test_split(
-                data, 
-                test_size=min(test_size, len(data) // 10),  # Use 10% for test
-                random_state=self.random_state,
-                stratify=data['Complaint_Type']
-            )
-        
-        # Save test data for later use
-        test_data_path = os.path.join(script_dir, '..', 'data', 'training', 'test_data_oop.csv')
-        os.makedirs(os.path.dirname(test_data_path), exist_ok=True)
-        self.test_data.to_csv(test_data_path, index=False)
-        self.logger.info(f"Saved {len(self.test_data):,} test data rows to: {test_data_path}")
-        
-        # Save training data CSV directly in data folder
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        train_data_csv_path = os.path.join(script_dir, '..', 'data', f'train_data_fv_{timestamp}.csv')
-        os.makedirs(os.path.dirname(train_data_csv_path), exist_ok=True)
-        self.train_data.to_csv(train_data_csv_path, index=False)
-        self.logger.info(f"📊 Training data saved as: {train_data_csv_path}")
-        
-        self.logger.info(f"Training set shape: {self.train_data.shape}")
-        self.logger.info(f"Test set shape: {self.test_data.shape}")
-        
-        # Show column order
-        self.logger.info("Column order:")
-        for i, col in enumerate(self.train_data.columns, 1):
-            self.logger.info(f"{i:2d}. {col}")
-        
-        # Show class distribution
-        self.logger.info("Class distribution in training set:")
-        class_dist = self.train_data['Complaint_Type'].value_counts()
-        self.logger.info(f"Number of classes: {len(class_dist)}")
-        self.logger.info(f"Class distribution:\n{class_dist}")
-        
-        self.logger.info("Class distribution in test set:")
-        class_dist_test = self.test_data['Complaint_Type'].value_counts()
-        self.logger.info(f"Number of classes: {len(class_dist_test)}")
-        self.logger.info(f"Class distribution:\n{class_dist_test}")
-        
-        self.logger.info(f"Final training will use {len(self.train_data):,} rows")
+        train_data_path = os.path.join(script_dir, '..', 'data', 'train_data_final.csv')
+        test_data_path = os.path.join(script_dir, '..', 'data', 'test_data_final.csv')
+        self.train_data = pd.read_csv(train_data_path)
+        self.test_data = pd.read_csv(test_data_path)
+        self.logger.info(f"Trainingsdaten geladen: {self.train_data.shape}")
+        self.logger.info(f"Testdaten geladen: {self.test_data.shape}")
+        # Ausgabe der Länge und der ersten 10 Zeilen
+        print(f"Länge train_data_final: {len(self.train_data)}")
+        print(self.train_data.head(10))
+        print(f"Länge test_data_final: {len(self.test_data)}")
+        print(self.test_data.head(10))
         
     def filter_classes(self, min_percentage=0.015): # 1.5% minimum representation
         """
