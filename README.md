@@ -6,6 +6,8 @@ Der Originaldatensatz unter https://data.cityofnewyork.us/Social-Services/311-Se
 
 Die Modellstruktur ist nun so aufgebaut, dass sich nach der Vorverarbeitung ein sinnvoller Einstiegspunkt für das Training und Tuning der Modelle auf Basis hinterlegter reduzierter Datensätze ergibt.
 
+**Deshalb hier mit Schritt 2 starten!**
+
 ---
 
 ## 📁 Projektstruktur (Auszug)
@@ -62,7 +64,8 @@ uvicorn src.main_api_final:app --reload
 → API läuft dann unter: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 → Testdateien für die Fast api können mit dem Script `generate_test_data_final.py` generiert werden.
-
+  Die Testdaten am besten vor dem Start der Fast api erzeugen, um sie aus dem Prompt-Fenster in die Fast api kopiern zu können.
+  Dort dann mit **Predict** und **Try it out** audführen
 
 ### 4. Streamlit-Fairness-Dashboard starten
 
