@@ -1,7 +1,9 @@
 
 # 🗽 New York City 311 – FastAPI-Modellprojekt
 
-Dieses Projekt enthält ein trainiertes Modell zur Verarbeitung von 311-Complaint-Daten aus NYC, eine FastAPI-Schnittstelle sowie diverse Prüf- und Dashboard-Komponenten zur Fairness-Analyse.
+Dieses Projekt enthält ein trainiertes Modell zur Verarbeitung von 311-Complaint-Daten aus NYC, eine FastAPI-Schnittstelle sowie diverse Prüf- und Dashboard-Komponenten zur Fairness-Analyse sowie alle zugehörigen Skripte zur Datenvorverabeitung und zum Training.
+Der Originaldatensatz unter https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9/about_data ist 22 GB groß. Die Modellstruktur ist nun so aufgebaut, dass sich nach der Vorverarbeitung ein sinnvoller Einstiegspunkt 
+für das Training und Tuning der Modelle auf Basis hinterlegter reduzierter Datensätze ergibt.
 
 ---
 
@@ -31,20 +33,35 @@ Dieses Projekt enthält ein trainiertes Modell zur Verarbeitung von 311-Complain
 ```
 
 ---
+## 🚀 Schnellstar
 
-## 🚀 Schnellstart
+### 1. Datenvorverarbeitung mit 
+```bash
+Daten_vorbereiten.py
+```
+und 
+```bash
+data_preprocessing.py
+```
+liefert bzgl. "Complaint Type" stratifizierte csv Dateien mit Trainings- und Testdatensätzen, mit sklearn Transformern Datum-Zu-Feature, High-Cardinality-Encoding und Outlier-Handling für
+das weitere Training vorbereitet. 
 
-### 1. FastAPI lokal starten
+### 2. Training mit 
+```bash
+trainAndTuneModell_fv.py
+```
+Kann mit verschiedenen Optionen, z.B. --train-only-first --skip-tuning aufgerufen werden.
+
+### 3. Fast api lokal starten aus dem Hauptprojetkverzeichnis mit
 
 ```bash
-uvicorn src.main:app --reload
+uvicorn src.main_api_final:app --reload
 ```
 
 → API läuft dann unter: [http://localhost:8000/docs](http://localhost:8000/docs)
 
----
 
-### 2. Streamlit-Fairness-Dashboard starten
+### 4. Streamlit-Fairness-Dashboard starten
 
 ```bash
 streamlit run src/Fairness_dashboard.py
@@ -56,11 +73,12 @@ streamlit run src/Fairness_dashboard.py
 
 ### 3. Tests ausführen
 
+Einzelne Tests z.B. mit
 ```bash
 pytest tests/test_main_api_fv.py
 ```
 
-Für einen vollständigen Testlauf:
+Für einen vollständigen Testlauf für die gesamte Pipeline:
 
 ```bash
 pytest tests/
