@@ -19,8 +19,8 @@ import seaborn as sns
 # 📥 Daten laden
 print("🔄 Lade Trainings- und Testdaten...")
 X_train, X_test, y_train, y_test, sensitive_train, sensitive_test = load_data(
-    "data/training/train_data_fv_20250629_185546.csv",
-    "data/training/test_data_oop.csv"
+    "data/training/train_data_final.csv",
+    "data/training/test_data_final.csv"
 )
 print("✅ Daten erfolgreich geladen.\n")
 

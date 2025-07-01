@@ -1,8 +1,9 @@
 # tests/test_fairlearn_audit.py
-import pytest
-import pandas as pd
 import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+import pytest
+import pandas as pd
 import os
 import pandas as pd
 from xgboost import XGBClassifier
@@ -15,10 +16,6 @@ from fairness_audit import (
 )
 from colorama import Fore, Style, init
 
-# Füge das 'src'-Verzeichnis zum Python-Pfad hinzu
-src_path = Path(__file__).parent.parent / 'src'
-sys.path.insert(0, str(src_path))
-
 init(autoreset=True)
 
 # Gibt einen farbigen Bannertext in der Konsole aus (nur für visuelle Hervorhebung bei Testläufen)
@@ -29,8 +26,8 @@ def banner(text, color=Fore.CYAN):
 @pytest.fixture
 def data_bundle():
     return load_data(
-        "data/training/train_data_fv_20250629_185546.csv",
-        "data/training/test_data_oop.csv"
+        "data/training/train_data_final.csv",
+        "data/training/test_data_final.csv"
     )
 
 # Testet, ob die geladenen Daten die erwarteten Dimensionen und Spalten enthalten
