@@ -64,8 +64,8 @@ uvicorn src.main_api_final:app --reload
 → API läuft dann unter: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 → Testdateien für die Fast api können mit dem Script `generate_test_data_final.py` generiert werden.
-   Die Testdaten am besten vor dem Start der Fast api erzeugen, um sie aus dem Prompt-Fenster in die Fast api kopiern zu können.
-   Dort dann mit **Predict** und **Try it out** audführen
+   Die Testdaten am besten vor dem Start der Fast api erzeugen, um sie aus dem Prompt-Fenster in die Fast api kopieren zu können.
+   Dort dann mit **Predict** und **Try it out** ausführen.
 
 ### 4. Streamlit-Fairness-Dashboard starten
 
