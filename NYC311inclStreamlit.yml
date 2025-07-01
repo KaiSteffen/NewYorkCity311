@@ -1,4 +1,4 @@
-name: D:\Fernstudium\Module\AITools\envs\pycaret_new
+name: pycaret_new
 channels:
   - conda-forge
   - defaults
