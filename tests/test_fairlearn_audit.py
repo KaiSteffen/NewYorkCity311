@@ -1,6 +1,10 @@
 # tests/test_fairlearn_audit.py
 import pytest
 import pandas as pd
+import sys
+from pathlib import Path
+import os
+import pandas as pd
 from xgboost import XGBClassifier
 from fairness_audit import (
     load_data,
@@ -10,6 +14,11 @@ from fairness_audit import (
     apply_threshold_moving
 )
 from colorama import Fore, Style, init
+
+# Füge das 'src'-Verzeichnis zum Python-Pfad hinzu
+src_path = Path(__file__).parent.parent / 'src'
+sys.path.insert(0, str(src_path))
+
 init(autoreset=True)
 
 # Gibt einen farbigen Bannertext in der Konsole aus (nur für visuelle Hervorhebung bei Testläufen)
