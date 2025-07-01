@@ -35,7 +35,7 @@ BOROUGH_DEMOGRAPHICS_MAPPING = {}
 DEMOGRAPHICS_FALLBACK = {'Weisse': 0.0, 'Afroamerikaner': 0.0, 'Asiaten': 0.0, 'Hispanics': 0.0}
 
 # --- Model Loading Globals ---
-MODEL_DIR = Path(os.getenv("MODEL_DIR", r"D:\Fernstudium\Module\AITools\repo\311NYC\models"))
+MODEL_DIR = Path(os.getenv("MODEL_DIR", str(Path(__file__).parent.parent / "models")))
 SPECIFIC_MODEL_PATH = MODEL_DIR / "model_reexported_20250630_124707.json" # Neuestes sauberes Modell
 BOOSTER = None
 FEATURE_NAMES = [
