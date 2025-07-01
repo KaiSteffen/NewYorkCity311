@@ -34,7 +34,7 @@ Die Modellstruktur ist nun so aufgebaut, dass sich nach der Vorverarbeitung ein 
 ```
 
 ---
-## 🚀 Schnellstar
+## 🚀 Schnellstart
 
 ### 1. Datenvorverarbeitung mit 
 ```bash
@@ -53,7 +53,7 @@ trainAndTuneModell_fv.py
 ```
 Kann mit verschiedenen Optionen, z.B. --train-only-first --skip-tuning aufgerufen werden.
 
-### 3. Fast api lokal starten aus dem Hauptprojetkverzeichnis mit
+### 3. Fast api lokal starten aus dem Hauptprojektverzeichnis mit
 
 ```bash
 uvicorn src.main_api_final:app --reload
