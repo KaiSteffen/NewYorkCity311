@@ -1,3 +1,49 @@
+"""
+🧮 Fairness-Metriken für Klassifikationsmodelle – Analyse und Korrektur
+
+Dieses Modul stellt Funktionen zur Verfügung, um Fairnessmetriken in Klassifikationsmodellen
+zu berechnen und durch Reweighing gewichtet auf Fairnessverstöße zu reagieren.
+
+Module-Funktionalitäten:
+------------------------
+1. disparate_impact_ratio:
+   - Berechnet das Disparate Impact Ratio (DIR) für binäre Klassifikationen.
+   - Gibt das Verhältnis der positiven Vorhersageraten zwischen benachteiligten und bevorzugten Gruppen an.
+
+2. evaluate_fairness_per_class:
+   - Bewertet für jede Zielklasse separat:
+     • Demographic Parity Difference (DPD)
+     • Equalized Odds Difference (EOD)
+     • Disparate Impact Ratio (DIR)
+   - Gibt eine Liste von Metriken je Klasse zurück.
+
+3. add_reweighing_weights:
+   - Berechnet für jedes Beispiel Reweighing-Gewichte basierend auf der Verteilung der Zielwerte
+     innerhalb der sensitiven Gruppen.
+   - Unterstützt so Fairnessmaßnahmen durch Gewichtung beim Training.
+
+Verwendete Bibliotheken:
+------------------------
+- pandas: Datenmanipulation und Gruppierungen
+- fairlearn.metrics: Berechnung gängiger Fairnessmetriken (DPD, EOD)
+
+Parameter:
+----------
+- y_true: Echte Klassenlabels
+- y_pred: Modellvorhersagen
+- sensitive_features: Sensitive Gruppierungsmerkmale (z. B. Geschlecht, Ethnie)
+- classes (optional): Konkrete Zielklassen zur Fairnessbewertung
+
+Anwendungsbeispiel:
+-------------------
+Zur Integration in Fairnesspipelines für Machine-Learning-Projekte,
+insbesondere zur Validierung von Klassifikationsmodellen im Hinblick
+auf unterschiedliche Behandlung zwischen Gruppen.
+
+Autor: Bettina Gertjerenken, Dagmar Wesemann, Kai W. Steffen
+Stand: Juni 2025
+"""
+
 import pandas as pd
 from fairlearn.metrics import demographic_parity_difference
 from fairlearn.metrics import equalized_odds_difference
@@ -36,6 +82,10 @@ def disparate_impact_ratio(y_true, y_pred, sensitive_features):
 # Rückgabe: Liste von Dictionaries mit Fairness-Metriken pro Klasse
 
 def evaluate_fairness_per_class(y_true, y_pred, sensitive_features, classes=None):
+    y_true = pd.Series(y_true)
+    y_pred = pd.Series(y_pred)
+    sensitive_features = pd.Series(sensitive_features)
+    
     results = []
     classes = sorted(set(y_true)) if classes is None else classes
 
