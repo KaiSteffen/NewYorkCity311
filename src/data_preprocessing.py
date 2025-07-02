@@ -14,6 +14,7 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 import re
 from collections import Counter
+import os
 
 class DataPreprocessorOOP:
     def __init__(self, base_path=None):
@@ -981,37 +982,52 @@ class DataPreprocessorOOP:
         # Create output directory if it doesn't exist
         Path(f'{self.BASE_PATH}/data').mkdir(parents=True, exist_ok=True)
         
-        # Save the processed data
-        output_path = f'{self.BASE_PATH}/data/processed_311_data_consolidated.csv'
-        self.df.to_csv(output_path, index=False)
-        print(f"✅ Processed data saved to: {output_path}")
-        print(f"📊 Final dataset shape: {self.df.shape}")
-        
-        # Show final columns
-        print(f"\n📋 Final columns ({len(self.df.columns)}):")
-        for i, col in enumerate(self.df.columns, 1):
-            print(f"{i:2d}. '{col}'")
-        
-        # Show first 10 rows
-        print(f"\n📄 First 10 rows:")
-        print(self.df.head(10))
-        
-        # Verify demographic columns are present
-        demo_cols = ['Weisse', 'Afroamerikaner', 'Asiaten', 'Hispanics']
-        present_demo_cols = [col for col in demo_cols if col in self.df.columns]
-        print(f"\n👥 Demographic columns present: {present_demo_cols}")
-        
-        if len(present_demo_cols) == len(demo_cols):
-            print("✅ All demographic columns successfully included in final dataset")
-        else:
-            missing_cols = [col for col in demo_cols if col not in self.df.columns]
-            print(f"⚠️  Missing demographic columns: {missing_cols}")
-        
-        print("="*80)
-        print("PREPROCESSING PIPELINE COMPLETED SUCCESSFULLY")
-        print("="*80)
-        
+        # Es werden nur noch Trainings- und Testdaten erzeugt und gespeichert
+        self.save_train_test_split()
+        print("   - data/train_data_final.csv (60.000 Zeilen, stratified nach Complaint_Type)")
+        print("   - data/test_data_final.csv (6.000 Zeilen, stratified nach Complaint_Type)")
         return self.df
+
+    def save_train_test_split(self, train_path=None, test_path=None, random_state=42):
+        """
+        Erzeuge Trainings- und Testdaten mit exakt 60.000 bzw. 6.000 Zeilen (falls möglich) und speichere sie als CSV im Projekt-root/data/.
+        Stratified nach Complaint_Type.
+        """
+        TARGET_TRAIN = 60000
+        TARGET_TEST = 6000
+        TARGET_TOTAL = TARGET_TRAIN + TARGET_TEST
+        if self.df is None or self.df.empty:
+            print("❌ No data to split and save!")
+            return
+        if train_path is None:
+            train_path = os.path.join(self.BASE_PATH, 'data', 'train_data_final.csv')
+        if test_path is None:
+            test_path = os.path.join(self.BASE_PATH, 'data', 'test_data_final.csv')
+        os.makedirs(os.path.dirname(train_path), exist_ok=True)
+        os.makedirs(os.path.dirname(test_path), exist_ok=True)
+        total_rows = len(self.df)
+        if total_rows < TARGET_TOTAL:
+            print(f"⚠️  Das Gesamtdataset ({total_rows}) ist kleiner als das gewünschte Ziel ({TARGET_TOTAL}). Es werden alle Daten verwendet.")
+            df_sampled = self.df.sample(frac=1.0, random_state=random_state)
+            test_size = min(TARGET_TEST, int(0.1 * total_rows))
+            train_df, test_df = train_test_split(df_sampled, test_size=test_size, random_state=random_state, stratify=df_sampled['Complaint_Type'] if 'Complaint_Type' in df_sampled.columns else None)
+        else:
+            # Berechne das Verhältnis für den Split
+            test_size = TARGET_TEST / TARGET_TOTAL
+            sample_frac = TARGET_TOTAL / total_rows
+            df_sampled = self.df.sample(frac=sample_frac, random_state=random_state)
+            train_df, test_df = train_test_split(df_sampled, test_size=test_size, random_state=random_state, stratify=df_sampled['Complaint_Type'] if 'Complaint_Type' in df_sampled.columns else None)
+            # Korrigiere auf exakte Zielgröße
+            if len(train_df) > TARGET_TRAIN:
+                train_df = train_df.sample(n=TARGET_TRAIN, random_state=random_state)
+            if len(test_df) > TARGET_TEST:
+                test_df = test_df.sample(n=TARGET_TEST, random_state=random_state)
+        print(f"Train-CSV wird gespeichert mit {len(train_df)} Zeilen.")
+        print(f"Test-CSV wird gespeichert mit {len(test_df)} Zeilen.")
+        train_df.to_csv(train_path, index=False)
+        test_df.to_csv(test_path, index=False)
+        print(f"✅ Training data saved to: {train_path} ({len(train_df)} rows)")
+        print(f"✅ Test data saved to: {test_path} ({len(test_df)} rows)")
 
 if __name__ == "__main__":
     # Initialize preprocessor
@@ -1022,7 +1038,5 @@ if __name__ == "__main__":
     
     if processed_df is not None:
         print("\n🎉 Preprocessing completed successfully!")
-        print(f"📊 Final dataset: {processed_df.shape[0]:,} rows, {processed_df.shape[1]} columns")
-        print("📁 Output file: data/processed_311_data_consolidated.csv")
     else:
         print("\n❌ Preprocessing failed!") 
